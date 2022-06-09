@@ -27,11 +27,12 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::get('/', [App\Http\Controllers\HomeController::class, 'index'])->name('home');
     Route::get('/update/{id}', [App\Http\Controllers\HomeController::class, 'update'])->name('update.task');
     Route::post('/update/{id}', [App\Http\Controllers\HomeController::class, 'postUpdate'])->name('update.post');
-    Route::get('/commits', [App\Http\Controllers\HomeController::class, 'history'])->name('history');
+    Route::get('/historique', [App\Http\Controllers\HomeController::class, 'history'])->name('history');
     Route::get('/commits/{id}', [App\Http\Controllers\HomeController::class, 'commit'])->name('commit');
-    Route::post('/', [App\Http\Controllers\HomeController::class, 'addTask'])->name('add.task');
+    Route::get('/add', [App\Http\Controllers\HomeController::class, 'addTask'])->name('add.taskM');
     Route::get('/completed/{id}', [App\Http\Controllers\HomeController::class, 'completed'])->name('completed.task');
     Route::get('/incomplete/{id}', [App\Http\Controllers\HomeController::class, 'incomplete'])->name('incomplete.task');
     Route::get('/close-day', [App\Http\Controllers\HomeController::class, 'closeDay'])->name('closeDay');
+    Route::get('/filter/day', [App\Http\Controllers\HomeController::class, 'filterDay'])->name('task_by_day');
 
 });

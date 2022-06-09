@@ -9,6 +9,7 @@ use App\Models\TacheCopy;
 use Illuminate\Support\Str;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use phpDocumentor\Reflection\Types\Null_;
 
 class HomeController extends Controller
 {
@@ -21,24 +22,29 @@ class HomeController extends Controller
     public function index()
     {
         $user = auth()->user();
-        $tasks = Tache::where('user_id', $user->id )->whereDate('end_task', '>', Carbon::now())->where('completed',0)->orderByDesc('created_at')->get();
-        $completedTasks = Tache::where('user_id', $user->id )->where('completed','<>',0)->orderByDesc('created_at')->get();
-        $endTasks = Tache::where('user_id', $user->id )->whereDate('end_task', '<=', Carbon::now())->orderByDesc('created_at')->get();
-        return view('home',compact('tasks','completedTasks','endTasks'));
+        $tasks = Tache::where('user_id', $user->id )->whereDate('created_at', Carbon::today())->where('is_close',0)->orderByDesc('created_at')->get();
+        $tasksComplet = Tache::where('user_id', $user->id )->where('completed',1)->whereDate('created_at', Carbon::today())->where('is_close',0)->orderByDesc('created_at')->count();
+        $tasksC = Tache::where('user_id', $user->id )->where('completed',0)->whereDate('created_at', Carbon::today())->where('is_close',0)->orderByDesc('created_at')->count();
+        return view('home',compact('tasks','tasksC','tasksComplet'));
     }
 
     public function history()
     {
         $user = auth()->user();
-        $lists = Liste::where('user_id', $user->id)->orderByDesc('created_at')->get();
-        return view('history',compact('lists'));
+        $dates = [];
+        $tasks = Tache::where('user_id', $user->id )->where('is_close',1)->orderByDesc('created_at')->get();
+        foreach ($tasks as $item){
+            $dates[] =  $item->create_day;
+        }
+        $dates = array_unique($dates);
+        return view('history',compact('tasks','dates'));
     }
-    public function commit($id)
-    {
-        $list = Liste::findOrFail($id);
-        $tasks = TacheCopy::where('list_id',$list->id)->orderByDesc('created_at')->get();
-        return view('commit',compact('tasks','list'));
-    }
+    // public function commit($id)
+    // {
+    //     $list = Liste::findOrFail($id);
+    //     $tasks = TacheCopy::where('list_id',$list->id)->orderByDesc('created_at')->get();
+    //     return view('commit',compact('tasks','list'));
+    // }
 
     public function update($id)
     {
@@ -52,13 +58,15 @@ class HomeController extends Controller
         $request->validate([
             'name' => 'required|string|max:200',
             'description' => 'nullable|string',
-            'endTaskDate' => 'required|date',
+            'endTaskDate' => 'required',
         ]);
+        $createdAt = Carbon::parse($request->endTaskDate);
         Tache::create([
             'name' => $request->name,
             'description' => $request->description,
-            'end_task' => $request->endTaskDate,
-            'user_id' => auth()->user()->id
+            'end_task' => $createdAt,
+            'user_id' => auth()->user()->id,
+            'create_day' =>Carbon::now()->format('Y-m-d')
         ]);
         flashy()->success('tache créée avec succès.');
         return redirect()->back();
@@ -80,10 +88,15 @@ class HomeController extends Controller
         return redirect()->back();
     }
 
-    public function completed($id){
+    public function completed(Request $request, $id){
+        if (isset($request->complete)) {
+            $value = 1;
+        }else{
+            $value = 0;
+        }
         $tasks = Tache::findOrFail($id);
         $tasks->update([
-            'completed' => 1
+            'completed' => $value
         ]);
         return redirect()->back();
     }
@@ -98,27 +111,28 @@ class HomeController extends Controller
     public function closeDay(){
         $user = auth()->user();
         DB::beginTransaction();
-        $list = Liste::create([
-            'commit' =>Str::random(4).time(),
-            'user_id'=> $user->id,
-        ]);
-        $tasks = $user->tasks;
-        foreach ($tasks as $item) {
-            TacheCopy::create([
-                'id' => $item->id,
-                'name' => $item->name,
-                'description' => $item->description,
-                'end_task' => $item->end_task,
-                'user_id' => $item->user_id,
-                'created_at' => $item->created_at,
-                'updated_at' => $item->updated_at,
-                'list_id' => $list->id,
-                'completed' => $item->completed
+        $tasks = Tache::where('user_id', $user->id )->whereDate('created_at', Carbon::today())->where('is_close',0)->orderByDesc('created_at')->get();
+        foreach ($tasks as $task) {
+            $task->update([
+                'is_close' => 1
             ]);
         }
         flashy()->success('sauvegarde de la fin de journée avec succès.');
         DB::commit();
         return redirect()->back();
+    }
+
+    public function filterDay(Request $request){
+        $user = auth()->user();
+        if($request->day != NULL ){
+            $data = Tache::where('user_id', $user->id )->where('create_day',$request->day)->where('is_close',1)->orderByDesc('created_at')->get();
+        }else{
+            $data = Tache::where('user_id', $user->id )->where('is_close',1)->orderByDesc('created_at')->get();
+        }
+
+        if (count($data) > 0) {
+            return response()->json($data);
+        }
     }
 
     public function logout(){

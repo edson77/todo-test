@@ -14,10 +14,13 @@
 
     <!-- Fonts -->
     <link rel="dns-prefetch" href="//fonts.gstatic.com">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
     <link href="https://fonts.googleapis.com/css?family=Nunito" rel="stylesheet">
 
     <!-- Styles -->
+    <link href="{{ asset('css/style.css') }}" rel="stylesheet">
     <link href="{{ asset('css/bootstrap.css') }}" rel="stylesheet">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
 </head>
 <body>
     <div id="app">
@@ -52,10 +55,6 @@
                                 </li>
                             @endif
                         @else
-                            
-                            <li class="nav-item">
-                                <a href="{{route('closeDay')}}" class="btn btn-danger">Cloturer la journée</a>
-                            </li>
                             <li class="nav-item">
                                 <a href="{{route('history')}}" class="nav-link ml-2">Historique</a>
                             </li>
@@ -79,5 +78,15 @@
         </main>
         @include('flashy::message')
     </div>
+<script src="{{asset('js/bootstrap.bundle.min.js')}}"></script>
+<script src="{{asset('js/scripts.js')}}"></script>
+
+<script src="{{asset('js/datepicker.js')}}" ></script>
+<script src="{{asset('js/datepicker.fr.js')}}" ></script>
+<script src="{{asset('js/main.js')}}"></script>
+
+<script src="{{asset('js/jquery.dataTables.min.js')}}"></script>
+<script src="{{asset('js/dataTables.bootstrap4.min.js')}}"></script>
+<script src="{{asset('js/data-table.js')}}"></script>
 </body>
 </html>

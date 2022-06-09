@@ -15,7 +15,9 @@ class Tache extends Model
         'description',
         'end_task',
         'completed',
+        'is_close',
         'user_id',
+        'create_day',
         'created_at',
         'updated_at'
     ];

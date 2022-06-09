@@ -19,7 +19,9 @@ class CreateTachesTable extends Migration
             $table->text('description')->nullable();
             $table->dateTime('end_task');
             $table->boolean('completed')->default(false);
+            $table->boolean('is_close')->default(false);
             $table->integer('user_id');
+            $table->date('create_day');
             $table->timestamps();
         });
     }
